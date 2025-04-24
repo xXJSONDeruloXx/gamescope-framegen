@@ -2,6 +2,10 @@
 
 attempting to implement lossless scaling / AFMF style post-process frame generation via GLSL shaders, optical flow.
 
+```
+gamescope --filter=interp [other options]
+```
+
 ---
 
 ## gamescope: the micro-compositor formerly known as steamcompmgr

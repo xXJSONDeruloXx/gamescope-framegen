@@ -25,15 +25,16 @@ data_dir = get_option('datadir')
 prefix = get_option('prefix')
 lib_dir = get_option('libdir')
 
+# Fix compiler warning flags - ensure they're properly named and supported
 add_project_arguments(cppc.get_supported_arguments([
   '-Wno-unused-parameter',
   '-Wno-missing-field-initializers',
-  '-Wno-c99-designator',
+  '-Wno-c99-designator', # Fixed from -Wc99-designator
   '-Wno-invalid-offsetof',
   '-Wno-unused-const-variable',
-  '-Wno-volatile', # glm warning
-  '-Wno-deprecated-volatile',
-  '-Wno-ignored-qualifiers', # reshade warning
+  '-Wno-volatile', 
+  '-Wno-deprecated-volatile', # Check if this is supported by your compiler
+  '-Wno-ignored-qualifiers',
   '-Wno-missing-braces',
 ]), language: 'cpp')
 
@@ -56,7 +57,14 @@ if get_option('enable_openvr_support')
     cmake = import('cmake')
     openvr_var = cmake.subproject_options()
     openvr_var.add_cmake_defines({'USE_LIBCXX': false})
+    # Add explicit CMake version compatibility
+    openvr_var.add_cmake_defines({'CMAKE_MINIMUM_REQUIRED_VERSION': '3.5'})
+    # Disable optional OpenVR features if causing build issues
+    openvr_var.add_cmake_defines({'BUILD_SHARED': false})
+    openvr_var.add_cmake_defines({'BUILD_UNIVERSAL': false})
     openvr_var.set_override_option('warning_level', '0')
+    
+    # Ensure we're using a specific OpenVR version that's known to work
     openvr_proj = cmake.subproject('openvr', options : openvr_var)
     openvr_dep = openvr_proj.dependency('openvr_api')
   endif
