@@ -29,7 +29,7 @@ lib_dir = get_option('libdir')
 add_project_arguments(cppc.get_supported_arguments([
   '-Wno-unused-parameter',
   '-Wno-missing-field-initializers',
-+ '-Wno-c99-designator', # Fixed warning flag
+  '-Wno-c99-designator', # Fixed warning flag
   '-Wno-invalid-offsetof',
   '-Wno-unused-const-variable',
   '-Wno-volatile',
