@@ -20,13 +20,21 @@ jobs:
             xorg-xwayland pipewire cmake \
             libavif libheif aom rav1e libdecor libxdamage \
             luajit
-            mkdir -p /usr/share/wayland-protocols/staging
-            curl -L https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main/staging/xx-color-management/xx-color-management-v3.xml -o /usr/share/wayland-protocols/staging/xx-color-management-v3.xml
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Build without OpenVR
+      - name: Build with gcc
         run: |
-          meson setup build --prefix=/usr -Denable_openvr_support=false
-          cd build
-          ninja
+          export CC=gcc CXX=g++
+          meson build-gcc/ -Dinput_emulation=disabled --werror --auto-features=enabled
+          ninja -C build-gcc/
+      - name: Build with gcc (no vr)
+        run: |
+          export CC=gcc CXX=g++
+          meson build-gcc-novr/ -Dinput_emulation=disabled -Denable_openvr_support=false --werror --auto-features=enabled
+          ninja -C build-gcc-novr/
+#      - name: Build with clang
+#        run: |
+#          export CC=clang CXX=clang++
+#          meson build-clang/ -Dinput_emulation=disabled --werror --auto-features=enabled
+#          ninja -C build-clang/
