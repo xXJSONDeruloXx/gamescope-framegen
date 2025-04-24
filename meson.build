@@ -29,11 +29,11 @@ lib_dir = get_option('libdir')
 add_project_arguments(cppc.get_supported_arguments([
   '-Wno-unused-parameter',
   '-Wno-missing-field-initializers',
-  '-Wno-c99-designator', # Fixed from -Wc99-designator
+  '-Wno-c99-designator', # This is already fixed
   '-Wno-invalid-offsetof',
   '-Wno-unused-const-variable',
   '-Wno-volatile', 
-  '-Wno-deprecated-volatile', # Check if this is supported by your compiler
+  # '-Wno-deprecated-volatile', # Removing unsupported flag
   '-Wno-ignored-qualifiers',
   '-Wno-missing-braces',
 ]), language: 'cpp')
@@ -58,7 +58,7 @@ if get_option('enable_openvr_support')
     openvr_var = cmake.subproject_options()
     openvr_var.add_cmake_defines({'USE_LIBCXX': false})
     # Add explicit CMake version compatibility
-    openvr_var.add_cmake_defines({'CMAKE_MINIMUM_REQUIRED_VERSION': '3.5'})
+    openvr_var.add_cmake_defines({'CMAKE_MINIMUM_REQUIRED_VERSION': '3.15'})
     # Disable optional OpenVR features if causing build issues
     openvr_var.add_cmake_defines({'BUILD_SHARED': false})
     openvr_var.add_cmake_defines({'BUILD_UNIVERSAL': false})

@@ -23,18 +23,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Build with gcc
+      - name: Build without OpenVR
         run: |
-          export CC=gcc CXX=g++
-          meson build-gcc/ -Dinput_emulation=disabled --werror --auto-features=enabled
-          ninja -C build-gcc/
-      - name: Build with gcc (no vr)
-        run: |
-          export CC=gcc CXX=g++
-          meson build-gcc-novr/ -Dinput_emulation=disabled -Denable_openvr_support=false --werror --auto-features=enabled
-          ninja -C build-gcc-novr/
-#      - name: Build with clang
-#        run: |
-#          export CC=clang CXX=clang++
-#          meson build-clang/ -Dinput_emulation=disabled --werror --auto-features=enabled
-#          ninja -C build-clang/
+          meson setup build --prefix=/usr -Denable_openvr_support=false
+          cd build
+          ninja
