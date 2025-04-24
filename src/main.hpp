@@ -36,6 +36,7 @@ enum class GamescopeUpscaleFilter : uint32_t
     FSR,
     NIS,
     PIXEL,
+    FRAME_INTERPOLATE,
 
     FROM_VIEW = 0xF, // internal
 };

@@ -400,6 +400,8 @@ static enum GamescopeUpscaleFilter parse_upscaler_filter(const char *str)
 		return GamescopeUpscaleFilter::NIS;
 	} else if (strcmp(str, "pixel") == 0) {
 		return GamescopeUpscaleFilter::PIXEL;
+	} else if (strcmp(str, "interp") == 0 || strcmp(str, "interpolate") == 0) {
+		return GamescopeUpscaleFilter::FRAME_INTERPOLATE;
 	} else {
 		fprintf( stderr, "gamescope: invalid value for --filter\n" );
 		exit(1);
