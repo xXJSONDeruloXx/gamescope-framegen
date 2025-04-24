@@ -20,6 +20,8 @@ jobs:
             xorg-xwayland pipewire cmake \
             libavif libheif aom rav1e libdecor libxdamage \
             luajit
+            mkdir -p /usr/share/wayland-protocols/staging
+            curl -L https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main/staging/xx-color-management/xx-color-management-v3.xml -o /usr/share/wayland-protocols/staging/xx-color-management-v3.xml
       - uses: actions/checkout@v4
         with:
           submodules: recursive

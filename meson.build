@@ -29,11 +29,10 @@ lib_dir = get_option('libdir')
 add_project_arguments(cppc.get_supported_arguments([
   '-Wno-unused-parameter',
   '-Wno-missing-field-initializers',
-  '-Wno-c99-designator', # This is already fixed
++ '-Wno-c99-designator', # Fixed warning flag
   '-Wno-invalid-offsetof',
   '-Wno-unused-const-variable',
-  '-Wno-volatile', 
-  # '-Wno-deprecated-volatile', # Removing unsupported flag
+  '-Wno-volatile',
   '-Wno-ignored-qualifiers',
   '-Wno-missing-braces',
 ]), language: 'cpp')
