@@ -2153,8 +2153,7 @@ bool CVulkanTexture::BInit( uint32_t width, uint32_t height, uint32_t depth, uin
 
 		imageInfo.tiling = tiling = VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT;
 	}
-
-	if ( flags.bFlippable == true && tiling != VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT )
+	else if ( flags.bFlippable == true && tiling != VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT )
 	{
 		// We want to scan-out the image
 		wsiImageCreateInfo = {
@@ -2821,6 +2820,7 @@ bool vulkan_init_formats()
 		vulkan_init_format(format, drmFormat);
 		if (format != srgbFormat)
 			vulkan_init_format(srgbFormat, drmFormat);
+		//fprintf(stderr, "drmFormat: 0x%x\n", drmFormat);
 	}
 
 	vk_log.infof( "supported DRM formats for sampling usage:" );
@@ -3021,7 +3021,7 @@ gamescope::OwningRc<CVulkanTexture> vulkan_create_flat_texture( uint32_t width, 
 	flags.bTransferDst = true;
 
 	gamescope::OwningRc<CVulkanTexture> texture = new CVulkanTexture();
-	bool bRes = texture->BInit( width, height, 1u, VulkanFormatToDRM( VK_FORMAT_B8G8R8A8_UNORM ), flags );
+	bool bRes = texture->BInit( width, height, 1u, DRM_FORMAT_ARGB8888, flags );
 	assert( bRes );
 
 	uint8_t* dst = (uint8_t *)g_device.uploadBufferData( width * height * 4 );
@@ -3163,7 +3163,7 @@ bool vulkan_make_swapchain( VulkanOutput_t *pOutput )
 		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
 	};
 
-	g_device.vk.CreateFence( g_device.device(), &fenceInfo, nullptr, &pOutput->acquireFence );
+	g_device.vk.CreateFence( g_device.vk.device(), &fenceInfo, nullptr, &pOutput->acquireFence );
 
 	vulkan_update_swapchain_hdr_metadata(pOutput);
 
@@ -3383,9 +3383,9 @@ static void update_tmp_images( uint32_t width, uint32_t height )
 	createFlags.bStorage = true;
 
 	g_output.tmpOutput = new CVulkanTexture();
-	bool bSuccess = g_output.tmpOutput->BInit( width, height, 1u, DRM_FORMAT_ARGB8888, createFlags, nullptr );
+	bool bRes = g_output.tmpOutput->BInit( width, height, 1u, DRM_FORMAT_ARGB8888, createFlags );
 
-	if ( !bSuccess )
+	if ( !bRes )
 	{
 		vk_log.errorf( "failed to create fsr output" );
 		return;
@@ -3503,12 +3503,9 @@ gamescope::OwningRc<CVulkanTexture> vulkan_create_texture_from_bits( uint32_t wi
 	memcpy( g_device.uploadBufferData(size), bits, size );
 
 	auto cmdBuffer = g_device.commandBuffer();
-
 	cmdBuffer->copyBufferToImage(g_device.uploadBuffer(), 0, 0, pTex.get());
-	// TODO: Sync this copyBufferToImage.
-
 	g_device.submit(std::move(cmdBuffer));
-	g_device.waitIdle();
+	g_device.waitIdle(); // TODO: Sync this better
 
 	return pTex;
 }
@@ -3623,14 +3620,13 @@ struct BlitPushData_t
 		scale[0] = { blit_scale, blit_scale };
 		offset[0] = { 0.5f, 0.5f };
 		opacity[0] = 1.0f;
-        u_shaderFilter = (uint32_t)GamescopeUpscaleFilter::LINEAR;
+		borderMask = 0;
 		ctm[0] = glm::mat3x4
 		{
 			1, 0, 0, 0,
 			0, 1, 0, 0,
 			0, 0, 1, 0
 		};
-		borderMask = 0;
 		frameId = s_frameId;
 
 		u_linearToNits = g_flInternalDisplayBrightnessNits;
@@ -3720,7 +3716,7 @@ struct RcasPushData_t
 		u_c1 = tmp.x;
 		u_shaderFilter = 0;
 
-		for (int i = 0; i < frameInfo->layerCount; i++)
+		for (intfor (int i = 0; i < frameInfo->layerCount; i++)
 		{
 			const FrameInfo_t::Layer_t *layer = &frameInfo->layers[i];
 
@@ -4233,17 +4229,10 @@ gamescope::OwningRc<CVulkanTexture> vulkan_create_texture_from_wlr_buffer( struc
 	VkMemoryRequirements memRequirements;
 	g_device.vk.GetBufferMemoryRequirements(g_device.device(), buffer, &memRequirements);
 
-	uint32_t memTypeIndex =  g_device.findMemoryType(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT|VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, memRequirements.memoryTypeBits );
-	if ( memTypeIndex == ~0u )
-	{
-		wlr_buffer_end_data_ptr_access( buf );
-		return nullptr;
-	}
-
 	VkMemoryAllocateInfo allocInfo = {
 		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
 		.allocationSize = memRequirements.size,
-		.memoryTypeIndex = memTypeIndex,
+		.memoryTypeIndex = uint32_t(g_device.findMemoryType(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT|VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, memRequirements.memoryTypeBits)),
 	};
 
 	VkDeviceMemory bufferMemory;

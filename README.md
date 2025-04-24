@@ -1,3 +1,9 @@
+## gamescope framegen: experimental frame interpolation shader 
+
+attempting to implement lossless scaling / AFMF style post-process frame generation via GLSL shaders, optical flow.
+
+---
+
 ## gamescope: the micro-compositor formerly known as steamcompmgr
 
 In an embedded session usecase, gamescope does the same thing as steamcompmgr, but with less extra copies and latency:
