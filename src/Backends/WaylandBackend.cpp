@@ -677,6 +677,11 @@ namespace gamescope
         wl_region *GetFullRegion() const { return m_pFullRegion; }
         CWaylandFb *GetBlackFb() const { return m_BlackFb.get(); }
 
+        void OnConnectorDestroyed( CWaylandConnector *pConnector )
+        {
+            m_pFocusConnector.compare_exchange_strong( pConnector, nullptr );
+        }
+
     private:
 
         void Wayland_Registry_Global( wl_registry *pRegistry, uint32_t uName, const char *pInterface, uint32_t uVersion );
@@ -742,7 +747,7 @@ namespace gamescope
         xdg_toplevel_icon_manager_v1 *m_pToplevelIconManager = nullptr;
 
         // TODO: Restructure and remove the need for this.
-        std::shared_ptr<CWaylandConnector> m_pFocusConnector;
+        std::atomic<CWaylandConnector *> m_pFocusConnector;
 
         wl_data_device_manager *m_pDataDeviceManager = nullptr;
         wl_data_device *m_pDataDevice = nullptr;
@@ -922,6 +927,7 @@ namespace gamescope
 
     CWaylandConnector::~CWaylandConnector()
     {
+        m_pBackend->OnConnectorDestroyed( this );
     }
 
     bool CWaylandConnector::UpdateEdid()
@@ -2119,7 +2125,7 @@ namespace gamescope
 
     IBackendConnector *CWaylandBackend::GetCurrentConnector()
     {
-        return m_pFocusConnector.get();
+        return m_pFocusConnector;
     }
     IBackendConnector *CWaylandBackend::GetConnector( GamescopeScreenType eScreenType )
     {
@@ -2191,8 +2197,7 @@ namespace gamescope
     std::shared_ptr<IBackendConnector> CWaylandBackend::CreateVirtualConnector( uint64_t ulVirtualConnectorKey )
     {
         std::shared_ptr<CWaylandConnector> pConnector = std::make_shared<CWaylandConnector>( this, ulVirtualConnectorKey );
-        if ( !m_pFocusConnector )
-            m_pFocusConnector = pConnector;
+        m_pFocusConnector = pConnector.get();
 
         if ( !pConnector->Init() )
         {
