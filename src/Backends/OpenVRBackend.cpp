@@ -359,9 +359,9 @@ namespace gamescope
 	{
 	public:
 		COpenVRBackend()
-            : m_Thread{ [this](){ this->VRInputThread(); } }
+            : m_LibInputWaiter{ "gamescope-libinput" }
+            , m_Thread{ [this](){ this->VRInputThread(); } }
             , m_FlipHandlerThread{ [this](){ this->FlipHandlerThread(); } }
-            , m_LibInputWaiter{ "gamescope-libinput" }
 		{
 		}
 
@@ -1264,13 +1264,14 @@ namespace gamescope
         std::mutex m_mutActiveConnectors;
         std::atomic<COpenVRConnector *> m_pFocusConnector;
 
-        std::thread m_Thread;
-        std::thread m_FlipHandlerThread;
         std::atomic<bool> m_bInitted = { false };
         std::atomic<bool> m_bRunning = { false };
 
         std::shared_ptr<CLibInputHandler> m_pLibInput;
         CAsyncWaiter<CRawPointer<IWaitable>, 16> m_LibInputWaiter;
+
+        std::thread m_Thread;
+        std::thread m_FlipHandlerThread;
 	};
 
     ////////////////////
