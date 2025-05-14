@@ -1270,6 +1270,7 @@ namespace gamescope
         std::shared_ptr<CLibInputHandler> m_pLibInput;
         CAsyncWaiter<CRawPointer<IWaitable>, 16> m_LibInputWaiter;
 
+        // Threads need to go last, as they rely on the other things in the class being constructed before their code is run.
         std::thread m_Thread;
         std::thread m_FlipHandlerThread;
 	};
