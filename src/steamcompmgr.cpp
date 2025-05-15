@@ -7918,44 +7918,47 @@ steamcompmgr_main(int argc, char **argv)
 			// We could/should make this event driven rather than solving
 			// per-frame.
 
-			std::vector<gamescope::VirtualConnectorKey_t> newKeys;
-
-			auto focusWindows = GetGlobalPossibleFocusWindows();
-			for ( steamcompmgr_win_t *pWindow : focusWindows )
+			if ( !gamescope::VirtualConnectorIsSingleOutput() )
 			{
-				gamescope::VirtualConnectorKey_t ulKey = pWindow->GetVirtualConnectorKey( eVirtualConnectorStrategy );
-				if ( !gamescope::Algorithm::Contains( newKeys, ulKey ) )
-					newKeys.emplace_back( ulKey );
-			}
-			std::sort( newKeys.begin(), newKeys.end() );
+				std::vector<gamescope::VirtualConnectorKey_t> newKeys;
 
-			std::vector<gamescope::VirtualConnectorKey_t> oldKeys;
-			for ( const auto &iter : g_VirtualConnectorFocuses )
-				oldKeys.emplace_back( iter.first );
-			std::sort( oldKeys.begin(), oldKeys.end() );
-
-			std::vector<gamescope::VirtualConnectorKey_t> diffKeys;
-
-			std::set_symmetric_difference(oldKeys.begin(), oldKeys.end(),
-								newKeys.begin(), newKeys.end(),
-								std::back_inserter(diffKeys),
-								[](auto& a, auto& b) { return a < b; });
-
-			for ( gamescope::VirtualConnectorKey_t ulKey : diffKeys )	
-			{
-				bool bIsSteam = gamescope::VirtualConnectorKeyIsSteam( ulKey );
-
-				if ( gamescope::Algorithm::Contains( newKeys, ulKey ) )
+				auto focusWindows = GetGlobalPossibleFocusWindows();
+				for ( steamcompmgr_win_t *pWindow : focusWindows )
 				{
-					g_VirtualConnectorFocuses[ulKey] = global_focus_t
-					{
-						.ulVirtualFocusKey = ulKey,
-						.pVirtualConnector = GetBackend()->UsesVirtualConnectors() ? GetBackend()->CreateVirtualConnector( ulKey ) : nullptr,
-					};
+					gamescope::VirtualConnectorKey_t ulKey = pWindow->GetVirtualConnectorKey( eVirtualConnectorStrategy );
+					if ( !gamescope::Algorithm::Contains( newKeys, ulKey ) )
+						newKeys.emplace_back( ulKey );
 				}
-				else if ( !bIsSteam ) // Never remove Steam's virtual conn	ector.
+				std::sort( newKeys.begin(), newKeys.end() );
+
+				std::vector<gamescope::VirtualConnectorKey_t> oldKeys;
+				for ( const auto &iter : g_VirtualConnectorFocuses )
+					oldKeys.emplace_back( iter.first );
+				std::sort( oldKeys.begin(), oldKeys.end() );
+
+				std::vector<gamescope::VirtualConnectorKey_t> diffKeys;
+
+				std::set_symmetric_difference(oldKeys.begin(), oldKeys.end(),
+									newKeys.begin(), newKeys.end(),
+									std::back_inserter(diffKeys),
+									[](auto& a, auto& b) { return a < b; });
+
+				for ( gamescope::VirtualConnectorKey_t ulKey : diffKeys )	
 				{
-					g_VirtualConnectorFocuses.erase( ulKey );
+					bool bIsSteam = gamescope::VirtualConnectorKeyIsSteam( ulKey );
+
+					if ( gamescope::Algorithm::Contains( newKeys, ulKey ) )
+					{
+						g_VirtualConnectorFocuses[ulKey] = global_focus_t
+						{
+							.ulVirtualFocusKey = ulKey,
+							.pVirtualConnector = GetBackend()->UsesVirtualConnectors() ? GetBackend()->CreateVirtualConnector( ulKey ) : nullptr,
+						};
+					}
+					else if ( !bIsSteam ) // Never remove Steam's virtual conn	ector.
+					{
+						g_VirtualConnectorFocuses.erase( ulKey );
+					}
 				}
 			}
 
