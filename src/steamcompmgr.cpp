@@ -3906,15 +3906,16 @@ determine_and_apply_focus( global_focus_t *pFocus )
 	// TODO(strategy): multi-seat on Wayland side
 	if ( pFocus == GetCurrentFocus() )
 	{
-		static global_focus_t s_lastFocus;
+		static gamescope::VirtualConnectorKey_t s_ulPreviousGlobalFocusKey;
 
 		// Tell wlserver about our keyboard/mouse focus.
-		if ( pFocus->inputFocusWindow    != s_lastFocus.inputFocusWindow ||
-			pFocus->keyboardFocusWindow != s_lastFocus.keyboardFocusWindow ||
-			pFocus->overrideWindow      != s_lastFocus.overrideWindow )
+		if ( pFocus->inputFocusWindow   != previousLocalFocus.inputFocusWindow ||
+			pFocus->keyboardFocusWindow != previousLocalFocus.keyboardFocusWindow ||
+			pFocus->overrideWindow      != previousLocalFocus.overrideWindow ||
+			pFocus->ulVirtualFocusKey   != s_ulPreviousGlobalFocusKey )
 		{
 			if ( win_surface(pFocus->inputFocusWindow)    != nullptr ||
-				win_surface(pFocus->keyboardFocusWindow) != nullptr )
+				 win_surface(pFocus->keyboardFocusWindow) != nullptr )
 			{
 				wlserver_lock();
 
@@ -3935,7 +3936,7 @@ determine_and_apply_focus( global_focus_t *pFocus )
 			// xwayland ctx.
 			// don't care if we change kb focus window due to that happening when
 			// going from override -> focus and we don't want to hide then as it's probably a dropdown.
-			if ( pFocus->cursor && pFocus->inputFocusWindow != s_lastFocus.inputFocusWindow )
+			if ( pFocus->cursor && pFocus->inputFocusWindow != previousLocalFocus.inputFocusWindow )
 				pFocus->cursor->hide();
 		}
 
@@ -3961,22 +3962,7 @@ determine_and_apply_focus( global_focus_t *pFocus )
 			pFocus->inputFocusWindow->GetFocus()->bResetToCenter = false;
 		}
 
-		s_lastFocus = *pFocus;
-		s_lastFocus.pVirtualConnector = nullptr; // I don't want to keep a ref to this.
-	}
-
-	// Determine if we need to repaints
-	if (previousLocalFocus.overlayWindow         != pFocus->overlayWindow         ||
-		previousLocalFocus.externalOverlayWindow != pFocus->externalOverlayWindow ||
-	    previousLocalFocus.notificationWindow    != pFocus->notificationWindow    ||
-		previousLocalFocus.overrideWindow        != pFocus->overrideWindow)
-	{
-		hasRepaintNonBasePlane = true;
-	}
-
-	if (previousLocalFocus.focusWindow           != pFocus->focusWindow)
-	{
-		hasRepaint = true;
+		s_ulPreviousGlobalFocusKey = pFocus->ulVirtualFocusKey;
 	}
 
 	// Backchannel to Steam
