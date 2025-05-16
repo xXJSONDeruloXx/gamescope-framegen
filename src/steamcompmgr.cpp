@@ -3525,7 +3525,7 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 		}
 	}
 
-	gamescope::VirtualConnectorStrategy eStrategy = steamMode
+	gamescope::VirtualConnectorStrategy eStrategy = gamescope::cv_backend_virtual_connector_strategy == gamescope::VirtualConnectorStrategies::SteamControlled
 		? gamescope::VirtualConnectorStrategies::SteamControlled
 		: gamescope::VirtualConnectorStrategies::PerWindow;
 
@@ -3752,7 +3752,7 @@ steamcompmgr_xdg_determine_and_apply_focus( const std::vector< steamcompmgr_win_
 			g_steamcompmgr_xdg_focus.externalOverlayWindow = window.get();
 	}
 
-	gamescope::VirtualConnectorStrategy eStrategy = steamMode
+	gamescope::VirtualConnectorStrategy eStrategy = gamescope::cv_backend_virtual_connector_strategy == gamescope::VirtualConnectorStrategies::SteamControlled
 		? gamescope::VirtualConnectorStrategies::SteamControlled
 		: gamescope::VirtualConnectorStrategies::PerWindow;
 
