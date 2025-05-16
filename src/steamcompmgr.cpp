@@ -3525,7 +3525,11 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 		}
 	}
 
-	pick_primary_focus_and_override( &ctx->focus, ctx->focusControlWindow, vecPossibleFocusWindows, false, vecFocuscontrolAppIDs );
+	gamescope::VirtualConnectorStrategy eStrategy = steamMode
+		? gamescope::VirtualConnectorStrategies::SteamControlled
+		: gamescope::VirtualConnectorStrategies::PerWindow;
+
+	pick_primary_focus_and_override( &ctx->focus, ctx->focusControlWindow, vecPossibleFocusWindows, false, vecFocuscontrolAppIDs, 0, eStrategy );
 
 	if ( inputFocus == NULL )
 	{
@@ -3747,7 +3751,12 @@ steamcompmgr_xdg_determine_and_apply_focus( const std::vector< steamcompmgr_win_
 		if (window->isExternalOverlay)
 			g_steamcompmgr_xdg_focus.externalOverlayWindow = window.get();
 	}
-	pick_primary_focus_and_override( &g_steamcompmgr_xdg_focus, None, vecPossibleFocusWindows, false, vecFocuscontrolAppIDs );
+
+	gamescope::VirtualConnectorStrategy eStrategy = steamMode
+		? gamescope::VirtualConnectorStrategies::SteamControlled
+		: gamescope::VirtualConnectorStrategies::PerWindow;
+
+	pick_primary_focus_and_override( &g_steamcompmgr_xdg_focus, None, vecPossibleFocusWindows, false, vecFocuscontrolAppIDs, 0, eStrategy );
 }
 
 uint32_t g_focusedBaseAppId = 0;
