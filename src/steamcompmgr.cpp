@@ -2614,7 +2614,7 @@ paint_all( global_focus_t *pFocus, bool async )
 			&frameInfo);
 	}
 
-	if ( !bValidContents || !GetBackend()->IsPaused() )
+	if ( !bValidContents || GetBackend()->IsPaused() )
 	{
 		return;
 	}
