@@ -639,6 +639,7 @@ namespace gamescope
         virtual bool IsSessionBased() const override;
         virtual bool SupportsExplicitSync() const override;
 
+        virtual bool IsPaused() const override;
         virtual bool IsVisible() const override;
 
         virtual glm::uvec2 CursorSurfaceSize( glm::uvec2 uvecSize ) const override;
@@ -2244,6 +2245,11 @@ namespace gamescope
     }
 
     bool CWaylandBackend::SupportsExplicitSync() const
+    {
+        return true;
+    }
+
+    bool CWaylandBackend::IsPaused() const
     {
         return true;
     }

@@ -169,6 +169,7 @@ namespace gamescope
         console_log.infof( "Supports Explicit Sync: %s", this->SupportsExplicitSync() ? "true" : "false" );
         console_log.infof( "Current Screen Type: %s", this->GetScreenType() == GAMESCOPE_SCREEN_TYPE_INTERNAL ? "Internal" : "External" );
         console_log.infof( "Is Visible: %s", this->IsVisible() ? "true" : "false" );
+        console_log.infof( "Is Paused: %s", this->IsPaused() ? "true" : "false" );
         console_log.infof( "Needs Frame Sync: %s", this->NeedsFrameSync() ? "true" : "false" );
         console_log.infof( "VRR Active: %s", this->GetCurrentConnector()->IsVRRActive() ? "true" : "false" );
         console_log.infof( "Total Presents Queued: %lu", this->GetCurrentConnector()->PresentationFeedback().TotalPresentsQueued() );

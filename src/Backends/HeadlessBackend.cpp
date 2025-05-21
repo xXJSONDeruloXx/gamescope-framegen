@@ -231,6 +231,11 @@ namespace gamescope
 			return true;
 		}
 
+		virtual bool IsPaused() const override
+		{
+			return false;
+		}
+
 		virtual bool IsVisible() const override
 		{
 			return true;
