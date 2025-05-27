@@ -3780,7 +3780,7 @@ namespace gamescope
 
 		virtual bool IsPaused() const override
 		{
-			return !g_DRM.paused;
+			return g_DRM.paused;
 		}
 
 		virtual bool IsVisible() const override
