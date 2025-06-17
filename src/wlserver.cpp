@@ -113,6 +113,8 @@ static void wlserver_constrain_cursor( struct wlr_pointer_constraint_v1 *pNewCon
 struct wlr_surface *wlserver_surface_to_main_surface( struct wlr_surface *pSurface );
 bool wlserver_process_hotkeys( wlr_keyboard *keyboard, uint32_t key, bool press );
 
+extern std::atomic<bool> hasRepaint;
+
 std::vector<ResListEntry_t>& gamescope_xwayland_server_t::retrieve_commits()
 {
 	static std::vector<ResListEntry_t> commits;
@@ -1071,6 +1073,7 @@ static gamescope::ConCommand cc_set_look("set_look", "Set a look for a specific 
 		g_ColorMgmtLooks[ EOTF_Gamma22 ] = LoadCubeLut( arg1.c_str(), bRaisesBlackLevelFloor );
 		cv_overlay_unmultiplied_alpha = bRaisesBlackLevelFloor;
 		g_ColorMgmt.pending.externalDirtyCtr++;
+		hasRepaint = true;
 	}
 	else if ( args.size() == 3 )
 	{
@@ -1101,6 +1104,7 @@ static gamescope::ConCommand cc_set_look("set_look", "Set a look for a specific 
 		}
 		cv_overlay_unmultiplied_alpha = bRaisesBlackLevelFloor;
 		g_ColorMgmt.pending.externalDirtyCtr++;
+		hasRepaint = true;
 	}
 	else
 	{
@@ -1108,6 +1112,7 @@ static gamescope::ConCommand cc_set_look("set_look", "Set a look for a specific 
 		g_ColorMgmtLooks[ EOTF_Gamma22 ] = nullptr;
 		g_ColorMgmtLooks[ EOTF_PQ ] = nullptr;
 		g_ColorMgmt.pending.externalDirtyCtr++;
+		hasRepaint = true;
 	}
 });
 
@@ -1142,12 +1147,14 @@ static void gamescope_control_set_look( struct wl_client *client, struct wl_reso
 		g_ColorMgmtLooks[ EOTF_Gamma22 ] = nullptr;
 		g_ColorMgmtLooks[ EOTF_PQ ] = nullptr;
 		g_ColorMgmt.pending.externalDirtyCtr++;
+		hasRepaint = true;
 	}
 
 	cv_overlay_unmultiplied_alpha = bRaisesBlackLevelFloor;
 	g_ColorMgmtLooks[ EOTF_Gamma22 ] = pG22LUT;
 	g_ColorMgmtLooks[ EOTF_PQ ] = pPQLUT;
 	g_ColorMgmt.pending.externalDirtyCtr++;
+	hasRepaint = true;
 }
 
 static void gamescope_control_unset_look( struct wl_client *client, struct wl_resource *resource )
@@ -1156,6 +1163,7 @@ static void gamescope_control_unset_look( struct wl_client *client, struct wl_re
 	g_ColorMgmtLooks[ EOTF_Gamma22 ] = nullptr;
 	g_ColorMgmtLooks[ EOTF_PQ ] = nullptr;
 	g_ColorMgmt.pending.externalDirtyCtr++;
+	hasRepaint = true;
 }
 
 static void gamescope_control_handle_destroy( struct wl_client *client, struct wl_resource *resource )
@@ -2245,8 +2253,6 @@ void wlserver_key( uint32_t key, bool press, uint32_t time )
 
 	bump_input_counter();
 }
-
-extern std::atomic<bool> hasRepaint;
 
 struct wlr_surface *wlserver_surface_to_main_surface( struct wlr_surface *pSurface )
 {
