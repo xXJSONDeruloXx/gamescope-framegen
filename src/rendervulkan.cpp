@@ -48,6 +48,7 @@
 #include "cs_nis.h"
 #include "cs_nis_fp16.h"
 #include "cs_rgb_to_nv12.h"
+#include "cs_opticalflow.h" // Optical flow shader SPIR-V header
 
 #define A_CPU
 #include "shaders/ffx_a.h"
@@ -923,6 +924,7 @@ bool CVulkanDevice::createShaders()
 		SHADER(NIS, cs_nis);
 	}
 	SHADER(RGB_TO_NV12, cs_rgb_to_nv12);
+	SHADER(OPTICAL_FLOW, cs_opticalflow); // Register optical flow shader
 #undef SHADER
 
 	for (uint32_t i = 0; i < shaderInfos.size(); i++)
@@ -1153,6 +1155,7 @@ void CVulkanDevice::compileAllPipelines()
 	SHADER(EASU, 1, 1, 1);
 	SHADER(NIS, 1, 1, 1);
 	SHADER(RGB_TO_NV12, 1, 1, 1);
+	SHADER(OPTICAL_FLOW, 1, 1, 1); // Optical flow shader pipeline
 #undef SHADER
 
 	for (auto& info : pipelineInfos) {
@@ -2058,6 +2061,10 @@ bool CVulkanTexture::BInit( uint32_t width, uint32_t height, uint32_t depth, uin
 		.tiling = tiling,
 		.usage = usage,
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+		.preTransform = pOutput->surfaceCaps.currentTransform,
+		.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+		.presentMode = VK_PRESENT_MODE_FIFO_KHR,
+		.clipped = VK_TRUE,
 	};
 
 	assert( imageInfo.format != VK_FORMAT_UNDEFINED );
@@ -2709,8 +2716,8 @@ static bool is_image_format_modifier_supported(VkFormat format, uint32_t drmForm
 
   VkImageFormatListCreateInfo formatList = {
     .sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO,
-    .viewFormatCount = (uint32_t)formats.size(),
-    .pViewFormats = formats.data(),
+    .viewFormatCount = 2,
+    .pViewFormats = formats,
   };
 
   if ( formats[0] != formats[1] )
@@ -2754,8 +2761,8 @@ bool vulkan_init_format(VkFormat format, uint32_t drmFormat)
 
 	VkImageFormatListCreateInfo formatList = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO,
-		.viewFormatCount = (uint32_t)formats.size(),
-		.pViewFormats = formats.data(),
+		.viewFormatCount = 2,
+		.pViewFormats = formats,
 	};
 
 	if ( formats[0] != formats[1] )
@@ -3539,7 +3546,6 @@ gamescope::OwningRc<CVulkanTexture> vulkan_create_texture_from_bits( uint32_t wi
 	memcpy( dst, bits, size );
 
 	auto cmdBuffer = g_device.commandBuffer();
-
 	cmdBuffer->copyBufferToImage(g_device.uploadBuffer(), offset, 0, pTex.get());
 	// TODO: Sync this copyBufferToImage.
 
@@ -3695,7 +3701,7 @@ struct CaptureConvertBlitData_t
 		scale[0] = { blit_scale, blit_scale };
 		offset[0] = { 0.0f, 0.0f };
 		opacity[0] = 1.0f;
-		borderMask = 0;
+		borderMask =  0;
 		ctm[0] = glm::mat3x4
 		{
 			1, 0, 0, 0,

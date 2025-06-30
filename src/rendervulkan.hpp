@@ -557,7 +557,7 @@ enum ShaderType {
 	SHADER_TYPE_RCAS,
 	SHADER_TYPE_NIS,
 	SHADER_TYPE_RGB_TO_NV12,
-
+	SHADER_TYPE_OPTICAL_FLOW, // Added for optical flow motion estimation
 	SHADER_TYPE_COUNT
 };
 
